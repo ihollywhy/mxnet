@@ -1,4 +1,5 @@
 # pylint: skip-file
+# -*- coding: utf-8 -*-
 import sys, os
 import argparse
 import mxnet as mx
@@ -11,6 +12,8 @@ from solver import Solver
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+# what means?
+
 ctx = mx.gpu(0)
 
 def main():

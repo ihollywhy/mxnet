@@ -1,4 +1,5 @@
 # pylint: skip-file
+# -*- coding: utf-8 -*-
 import mxnet as mx
 
 def filter_map(kernel=1, stride=1, pad=0):
@@ -114,7 +115,7 @@ def vgg16_score(input, numclass, workspace_default=1024):
     relu5_1 = mx.symbol.Activation(data=conv5_1, act_type="relu", name="relu5_1")
     conv5_2 = mx.symbol.Convolution(data=relu5_1, kernel=(3, 3), pad=(1, 1), num_filter=512,
                 workspace=workspace_default, name="conv5_2")
-    relu5_2 = mx.symbol.Activation(data=conv5_2, act_type="relu", name="conv1_2")
+    relu5_2 = mx.symbol.Activation(data=conv5_2, act_type="relu", name="relu5_2")
     conv5_3 = mx.symbol.Convolution(data=relu5_2, kernel=(3, 3), pad=(1, 1), num_filter=512,
                 workspace=workspace_default, name="conv5_3")
     relu5_3 = mx.symbol.Activation(data=conv5_3, act_type="relu", name="relu5_3")
@@ -132,6 +133,7 @@ def vgg16_score(input, numclass, workspace_default=1024):
     # group 8
     score = mx.symbol.Convolution(data=drop7, kernel=(1, 1), num_filter=numclass,
                 workspace=workspace_default, name="score")
+    # 21个filter表示21个类别的score
     return score
 
 def fcnxs_score(input, crop, offset, kernel=(64,64), stride=(32,32), numclass=21, workspace_default=1024):
@@ -142,7 +144,15 @@ def fcnxs_score(input, crop, offset, kernel=(64,64), stride=(32,32), numclass=21
     softmax = mx.symbol.SoftmaxOutput(data=upscore, multi_output=True, use_ignore=True, ignore_label=255, name="softmax")
     return softmax
 
+def get_fcnvgg16_symbol(numclass=21, workspace_default=1024):
+    data = mx.symbol.Variable(name="data")
+    pool3 = vgg16_pool3(data, workspace_default)
+    pool4 = vgg16_pool4(pool3, workspace_default)
+    score = vgg16_score(pool4, numclass, workspace_default)    
+    return score
+
 def get_fcn32s_symbol(numclass=21, workspace_default=1024):
+    # convolution中的workspace参数是什么意思？
     data = mx.symbol.Variable(name="data")
     pool3 = vgg16_pool3(data, workspace_default)
     pool4 = vgg16_pool4(pool3, workspace_default)

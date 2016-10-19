@@ -1,4 +1,5 @@
 # pylint: skip-file
+# -*- coding: utf-8 -*-
 import numpy as np
 import mxnet as mx
 import time
@@ -15,6 +16,7 @@ class Solver(object):
                  begin_epoch=0, num_epoch=None,
                  arg_params=None, aux_params=None,
                  optimizer='sgd', **kwargs):
+        # **表示收集其余的所有关键字参数，形成一个字典
         self.symbol = symbol
         if ctx is None:
             ctx = mx.cpu()
@@ -25,6 +27,7 @@ class Solver(object):
         self.aux_params = aux_params
         self.optimizer = optimizer
         self.kwargs = kwargs.copy()
+        # 字典的浅拷贝
 
     def fit(self, train_data, eval_data=None,
             eval_metric='acc',
@@ -37,7 +40,9 @@ class Solver(object):
             logger = logging
         logging.info('Start training with %s', str(self.ctx))
         arg_shapes, out_shapes, aux_shapes = self.symbol.infer_shape(data=train_data.provide_data[0][1])
+        # 通过in_shape参数分别推算in_data, out_data, aux的shape
         arg_names = self.symbol.list_arguments()
+        # 告知系统需要的参数
         if grad_req != 'null':
             self.grad_params = {}
             for name, shape in zip(arg_names, arg_shapes):
@@ -50,11 +55,12 @@ class Solver(object):
         data_name = train_data.data_name
         label_name = train_data.label_name
         input_names = [data_name, label_name]
-        self.optimizer = opt.create(self.optimizer, rescale_grad=(1.0/train_data.get_batch_size()), **(self.kwargs))
-        self.updater = get_updater(self.optimizer)
+        self.optimizer = opt.create(self.optimizer, rescale_grad=(1.0/train_data.get_batch_size()), **(self.kwargs)) # batch_size=1
+        self.updater = get_updater(self.optimizer) # 什么作用？
         eval_metric = metric.create(eval_metric)
         # begin training
         for epoch in range(self.begin_epoch, self.num_epoch):
+            # num_epoch应该是end_epoch更合理
             nbatch = 0
             train_data.reset()
             eval_metric.reset()
